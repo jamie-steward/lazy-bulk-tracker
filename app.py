@@ -43,40 +43,43 @@ weight = st.number_input(
 )
 
 if st.button("Save weight"):
-    supabase.table("bulk_weights").upsert({
-        "user_name": user_name,
-        "entry_date": str(entry_date),
-        "weight_kg": weight
-    }).execute()
+    supabase.table("bulk_weights").upsert(
+        {
+            "user_name": user_name,
+            "entry_date": str(entry_date),
+            "weight_kg": weight
+        },
+        on_conflict="user_name,entry_date"
+    ).execute()
 
     st.success("Saved.")
+    st.rerun()
 
 st.metric("Rob's total weigh-ins", entry_count)
 
-st.write(df.drop(columns=["id"]))
-
 if df.empty:
     st.info("No weigh-ins yet.")
-    st.stop()
-
-df = df.sort_values("entry_date")
-df["entry_date"] = pd.to_datetime(df["entry_date"])
-
-st.line_chart(df.set_index("entry_date")["weight_kg"])
-
-if len(df) >= 14:
-    latest_7 = df.tail(7)["weight_kg"].mean()
-    previous_7 = df.tail(14).head(7)["weight_kg"].mean()
-    weekly_gain = latest_7 - previous_7
-
-    st.metric("Latest 7-day avg", f"{latest_7:.2f} kg")
-    st.metric("Weekly gain", f"{weekly_gain:.2f} kg/week")
-
-    if weekly_gain < 0.25:
-        st.warning("Eat more. Add 200–300 kcal/day.")
-    elif weekly_gain <= 0.5:
-        st.success("Perfect. Keep going.")
-    else:
-        st.error("Too fast. Reduce calories slightly.")
 else:
-    st.info("Log 14 days to unlock advice.")
+    st.write(df.drop(columns=["id"], errors="ignore"))
+
+    df = df.sort_values("entry_date")
+    df["entry_date"] = pd.to_datetime(df["entry_date"])
+
+    st.line_chart(df.set_index("entry_date")["weight_kg"])
+
+    if len(df) >= 14:
+        latest_7 = df.tail(7)["weight_kg"].mean()
+        previous_7 = df.tail(14).head(7)["weight_kg"].mean()
+        weekly_gain = latest_7 - previous_7
+
+        st.metric("Latest 7-day avg", f"{latest_7:.2f} kg")
+        st.metric("Weekly gain", f"{weekly_gain:.2f} kg/week")
+
+        if weekly_gain < 0.25:
+            st.warning("Eat more. Add 200–300 kcal/day.")
+        elif weekly_gain <= 0.5:
+            st.success("Perfect. Keep going.")
+        else:
+            st.error("Too fast. Reduce calories slightly.")
+    else:
+        st.info("Log 14 days to unlock advice.")
