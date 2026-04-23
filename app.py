@@ -33,6 +33,8 @@ response = (
 
 df = pd.DataFrame(response.data)
 
+entry_count = len(df)
+
 if not df.empty:
     last_weight = float(df.iloc[-1]["weight_kg"])
 else:
@@ -53,7 +55,9 @@ if st.button("Save weight"):
 
     st.success("Saved.")
 
-st.write(df)
+st.metric("Rob's total weigh-ins", entry_count)
+
+st.write(df.drop(columns=["id"]))
 
 if df.empty:
     st.info("No weigh-ins yet.")
