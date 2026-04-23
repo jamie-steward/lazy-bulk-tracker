@@ -12,10 +12,6 @@ supabase = create_client(
 
 st.title("💪 Lazy Bulk Tracker")
 
-password = st.text_input("Password", type="password")
-
-if password != st.secrets["APP_PASSWORD"]:
-    st.stop()
 
 user_name = "rob"
 st.write("Tracking for Rob 💪")
